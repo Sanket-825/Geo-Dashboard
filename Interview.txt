@@ -1,0 +1,179 @@
+1. “How did you optimize large dataset handling?”
+=>
+   Instead of fetching the entire dataset, I implemented backend pagination using 
+   MongoDB skip and limit queries. This reduced payload size and improved frontend responsiveness.
+
+2. What is the difference between pagination and virtualization?
+=> 
+   Pagination limits how much data is fetched from the backend, while virtualization limits how many DOM elements are rendered on the frontend. Pagination optimizes network transfer, whereas virtualization optimizes rendering performance. 
+
+3. Why did you separate API logic into a service layer?
+=> 
+   Separating API logic improves maintainability, reusability, and scalability. Components remain focused on UI rendering while the service layer handles data fetching responsibilities. 
+
+4. Why did MongoDB IDs change from id to _id?
+=> 
+   MongoDB automatically generates a unique _id field for every document. Unlike manually generated IDs in mock JSON data, _id is database-managed and optimized for indexing and querying.
+
+5. Why did you move pagination state into the custom hook?
+=> 
+   The custom hook centralizes data-fetching logic and related state management. This keeps UI components cleaner and improves separation of concerns.
+
+6. Why is backend pagination better than frontend slicing?
+=> 
+   Frontend slicing still requires fetching the entire dataset Initially, which increases memory usage and network transfer. Backend pagination ensures only required records are transferred, making the application scalable for large datasets.
+
+7. Why does the frontend still need pagination controls if backend pagination exists?
+=> 
+   Pagination controls manage user navigation, while backend pagination determines which subset of records is fetched from the database. The frontend triggers backend requests based on the selected page.
+
+8. Why did you use getRowId in MUI DataGrid?
+=> 
+   MUI DataGrid expects a unique id field for each row, but MongoDB provides _id. Using getRowId maps MongoDB’s _id to the DataGrid row identifier system.
+
+9. Why did you move pagination to paginationMode="server"?
+=> 
+   Server-side pagination ensures only the required subset of records is fetched from the database, which improves scalability and avoids loading large datasets into frontend memory.
+
+10. How did you verify backend pagination was working correctly?
+=> 
+   I inspected the browser Network tab to confirm that the frontend sends paginated API requests with page and limit parameters, and verified that the backend returns only the requested subset of records.
+
+11. Why is checking the Network tab important?
+=> 
+   It helps verify API behavior, payload size, request timing, and whether the frontend is making optimized requests instead of over-fetching data.
+
+   Open DevTools => Network tab => Filter : Fetch/XHR => Now change page => You should see request like: http://localhost:5000/api/projects?page=2&limit=50
+
+12. Why is a unique identifier important in React rendering?
+=> 
+   Unique identifiers help React efficiently track and update list elements during re-rendering. This improves reconciliation performance and prevents unstable UI behavior.
+
+13. Why did you disable map animation?
+=> 
+   Map animations caused additional main-thread work during rapid selection updates. Disabling animations improved responsiveness and reduced UI blocking.
+
+14. Why did you use 100vh for the map container?
+=> 
+   Using 100vh ensures the map remains fixed to the viewport height, preventing layout stretching and improving dashboard usability.
+
+15. Why is independent scrolling useful in dashboard layouts?
+=> 
+   Independent scrolling improves usability by keeping critical UI sections visible while allowing large datasets to be navigated separately.
+
+16. Why did you stop using completely random coordinates?
+=> 
+   Completely random coordinates created unrealistic locations outside India because geographic boundaries are irregular. I switched to city-based coordinate generation with controlled variance to produce more realistic spatial data.
+
+17. Why is realistic mock data important?
+=> 
+   Realistic mock data improves testing quality, UI validation, and overall demo credibility. It helps simulate production-like behavior more accurately.
+
+18. Why is virtualization important for large datasets?
+=> 
+   Virtualization reduces DOM rendering cost by rendering only visible elements instead of the entire dataset. This significantly improves scrolling performance and memory efficiency for large lists.
+
+19. Why is backend filtering preferred over frontend filtering for large datasets?
+=> 
+   Backend filtering avoids transferring unnecessary records to the client and leverages database indexing for efficient querying, which improves scalability and response time.
+
+20. Why is backend search more scalable than frontend search?
+=> 
+   Backend search avoids transferring unnecessary data to the client and leverages database query optimization and indexing for efficient filtering.
+
+21. Why did you use regex with the i option?
+=> 
+   Regex enables partial text matching, while the i option makes the search case-insensitive for better user experience.
+
+22. What is dynamic query construction?
+=> 
+   Dynamic query construction allows the backend to build MongoDB queries conditionally based on request parameters like search, filters, and sorting.
+
+23. Why does “Project 1” also match “Project 10” and “Project 100”?
+=> 
+   Because regex-based search performs partial matching. The query searches for occurrences of the text within the field rather than exact equality.
+
+24. Why use an object instead of multiple function parameters?
+=> Using an object improves scalability and readability because optional parameters can be added without
+   changing the function signature order.
+
+25. Why use debouncing in search?
+=> 
+   Debouncing prevents excessive API requests while the user is typing, reducing unnecessary network calls and improving application performance.
+
+26. Why place data-fetching logic inside a custom hook?
+=> 
+   Custom hooks improve separation of concerns by isolating business logic from UI components, making the codebase more reusable and maintainable.
+
+27. Did you implement virtualization manually?
+=> 
+   No. MUI DataGrid already provides built-in row virtualization, which efficiently renders only visible rows. I further optimized rendering using buffer tuning and server-side pagination.
+
+28. Why is server-side pagination still important if virtualization exists?
+=> 
+   Virtualization optimizes DOM rendering, but server-side pagination reduces network payload size and frontend memory usage. Both solve different performance problems.
+
+29. What limitation did you encounter with the free MUI DataGrid?
+=> 
+   The MIT version restricts page size to 100 rows. To handle larger datasets efficiently, I relied on backend pagination and built-in virtualization rather than rendering excessively large pages.
+
+30. How did you verify virtualization was working?
+=> 
+   I inspected the DOM and confirmed that only visible rows were rendered despite large datasets being loaded. I also monitored scrolling performance and memory usage using Chrome DevTools.
+
+31. What tools did you use for frontend performance testing?
+=> 
+   I used Chrome DevTools Performance panel, Network tab, Memory tab, and Chrome Task Manager to analyze rendering behavior, API payload size, CPU usage, and memory consumption.
+
+32. Why combine infinite scrolling with virtualization?
+=> 
+   Infinite scrolling improves user experience by progressively loading data, while virtualization ensures only visible rows are rendered. Together they provide scalable handling for very large datasets.
+
+33. Why not fetch all records at once for infinite scrolling?
+=> 
+   Fetching all records increases memory usage, network payload size, and initial load time. Backend pagination allows incremental data loading while maintaining scalability.
+
+34. Why clear previous data when filters change?
+=> 
+   Because the previously loaded dataset no longer matches the new query conditions, so stale records must be removed before loading fresh results.
+
+35. Why append data instead of replacing it in infinite scrolling?
+=> 
+   Infinite scrolling progressively extends the existing dataset, so new pages must be appended to preserve previously loaded content and scrolling continuity.
+
+36. How did you implement infinite scrolling?
+=> 
+   I attached a scroll listener to the DataGrid virtual scroller and triggered backend pagination requests when the user reached near the bottom of the scroll container.
+   Understand this : DataTable.jsx 
+
+37. Why detect near-bottom instead of exact-bottom?
+=> 
+   Preloading before the exact bottom improves perceived smoothness and avoids visible loading delays during scrolling.
+
+38. Why do API calls happen multiple times in React development mode?
+=> 
+   React StrictMode intentionally re-runs lifecycle logic in development to help detect unintended side effects and unsafe operations. This behavior does not occur in production builds.
+
+39. Is infinite scrolling always better?
+=> 
+   No. Infinite scrolling is ideal for feed-based experiences, while pagination is often more suitable for enterprise dashboards where users need controlled navigation, indexing, and predictable data access.
+
+40. Why did string sorting fail for project names?
+=> 
+   The project names contained embedded numbers, but MongoDB was performing lexicographical string sorting instead of numeric sorting, causing values like "Project 100" to appear before "Project 2".
+
+41. Why not parse numbers dynamically from strings during sorting?
+=> 
+   Parsing values dynamically during database queries increases computation overhead and reduces query efficiency. Storing normalized sortable fields is more scalable and index-friendly.
+
+42. Why keep both projectName and projectNumber?.
+=> 
+   projectName is optimized for display readability, while projectNumber provides efficient numeric sorting and indexing behavior.
+
+43. If MongoDB is schema-less, why did the field disappear?
+=> 
+   MongoDB itself is schema-flexible, but Mongoose applies schema validation and strict mode at the application layer. Fields not defined in the schema are ignored before insertion.
+
+44. Why use Mongoose strict mode?
+=> 
+   Strict mode helps maintain data consistency by preventing accidental insertion of unexpected fields into documents.
