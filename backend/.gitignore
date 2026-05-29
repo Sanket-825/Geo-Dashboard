@@ -1,4 +1,7 @@
+# Environment Variables
 .env
+.env.local
+.env.production.local
 
 # Logs
 logs
@@ -9,19 +12,37 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build output
 dist
 dist-ssr
+
+# Coverage
+coverage
+
+# Temp files
+*.tmp
+*.temp
+
+# Local config
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# OS generated
 .DS_Store
+Thumbs.db
+
+# Visual Studio
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
 
+# Vim
+*.sw?
