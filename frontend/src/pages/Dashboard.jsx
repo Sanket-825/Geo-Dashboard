@@ -51,6 +51,32 @@ export default function Dashboard() {
     setPage((prev) => prev + 1);
   };
 
+  if (loading && data.length === 0) {
+  return (
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        textAlign: "center",
+        padding: "20px",
+      }}
+    >
+      <h2>Loading Geo Dashboard...</h2>
+
+      <p>
+        Backend may be waking up from inactivity.
+      </p>
+
+      <p>
+        First load can take up to 30-60 seconds.
+      </p>
+    </div>
+  );
+}
+
   return (
     <div
       style={{
