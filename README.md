@@ -19,7 +19,15 @@ Geo Dashboard lets users search, filter, sort, and paginate through large projec
 
 ## Screenshots
 
-> *(Add screenshots or a GIF demo here — map view, grid view, and search/filter in action)*
+> <img width="1366" height="768" alt="Screenshot (107)" src="https://github.com/user-attachments/assets/624e6c42-6761-4b0b-8058-cd3bcf443a9c" />
+
+> <img width="1366" height="768" alt="Screenshot (108)" src="https://github.com/user-attachments/assets/ff847280-b99f-4748-a253-1c6ce9135adf" />
+
+> <img width="1366" height="768" alt="Screenshot (109)" src="https://github.com/user-attachments/assets/1fa20b4b-2eef-4cf0-b7a4-abd7b7552aa8" />
+
+><img width="1366" height="768" alt="Screenshot (111)" src="https://github.com/user-attachments/assets/5f0f7aa1-1d56-4b69-b6a7-bd5f3ff56178" />
+
+><img width="1366" height="768" alt="Screenshot (112)" src="https://github.com/user-attachments/assets/7764db21-042a-42fa-804a-162b27a9365e" />
 
 ---
 
