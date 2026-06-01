@@ -146,4 +146,4 @@ Without debouncing, every keystroke fires an API request. A 300ms debounce reduc
 
 ## Author
 
-**Sanket Parab** (#)
+**Sanket Parab** 
