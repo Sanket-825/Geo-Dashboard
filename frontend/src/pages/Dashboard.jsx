@@ -67,10 +67,11 @@ export default function Dashboard() {
       <h2>Loading Geo Dashboard...</h2>
 
       <p>
-        Backend may be waking up from inactivity.
+        Preparing project data...
       </p>
 
       <p>
+        The backend may take a few moments to start if it has been inactive.
         First load can take up to 30-60 seconds.
       </p>
     </div>
