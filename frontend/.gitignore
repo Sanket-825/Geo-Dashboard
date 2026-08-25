@@ -48,3 +48,5 @@ Thumbs.db
 # Vim
 *.sw?
 
+# Text files
+*.txt
