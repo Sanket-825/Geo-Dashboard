@@ -6,11 +6,19 @@ import projectRoutes from "./routes/projectRoutes.js";
 
 dotenv.config();
 
-// console.log("URI:", JSON.stringify(process.env.MONGO_URI));
-
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://geo-dashboard-sigma.vercel.app", 
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+  })
+);
+
 app.use(express.json());
 
 app.use("/api/projects", projectRoutes);
