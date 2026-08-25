@@ -36,8 +36,8 @@ const projectSchema = new mongoose.Schema(
 
 projectSchema.index({ projectName: 1 });
 projectSchema.index({ projectNumber: 1 });
-projectSchema.index({ status: 1 });
 projectSchema.index({ createdAt: 1 });
+projectSchema.index({ status: 1, projectNumber: 1 });
 
 const Project = mongoose.model("Project", projectSchema);
 
