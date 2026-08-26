@@ -2,11 +2,15 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import projectRoutes from "./routes/projectRoutes.js";
 
 dotenv.config();
 
 const app = express();
+
+app.use(helmet());
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -34,9 +38,19 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true, 
+  legacyHeaders: false,
+  message: {
+    message: "Too many requests, please try again later.",
+  },
+});
+
 app.use(express.json());
 
-app.use("/api/projects", projectRoutes);
+app.use("/api/projects", apiLimiter, projectRoutes);
 
 app.get("/", (req, res) => {
   res.send("API Running...");
