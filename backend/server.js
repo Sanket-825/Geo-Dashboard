@@ -9,15 +9,30 @@ dotenv.config();
 const app = express();
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://geo-dashboard-sigma.vercel.app", 
-];
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL_LOCAL,
+]
+  .filter(Boolean)
+  .map((origin) => origin.replace(/\/$/, ""));
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests without an Origin header
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const normalizedOrigin = origin.replace(/\/$/, "");
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
@@ -36,6 +51,7 @@ mongoose
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`CORS allowed origins: ${allowedOrigins.join(", ")}`);
     });
   })
   .catch((err) => {
