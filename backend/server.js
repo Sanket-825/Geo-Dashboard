@@ -2,18 +2,55 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import projectRoutes from "./routes/projectRoutes.js";
 
 dotenv.config();
 
-// console.log("URI:", JSON.stringify(process.env.MONGO_URI));
-
 const app = express();
 
-app.use(cors());
+app.use(helmet());
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL_LOCAL,
+]
+  .filter(Boolean)
+  .map((origin) => origin.replace(/\/$/, ""));
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests without an Origin header
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const normalizedOrigin = origin.replace(/\/$/, "");
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+};
+
+app.use(cors(corsOptions));
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true, 
+  legacyHeaders: false,
+  message: {
+    message: "Too many requests, please try again later.",
+  },
+});
+
 app.use(express.json());
 
-app.use("/api/projects", projectRoutes);
+app.use("/api/projects", apiLimiter, projectRoutes);
 
 app.get("/", (req, res) => {
   res.send("API Running...");
@@ -28,6 +65,7 @@ mongoose
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`CORS allowed origins: ${allowedOrigins.join(", ")}`);
     });
   })
   .catch((err) => {

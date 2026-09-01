@@ -26,8 +26,6 @@ export default function Dashboard() {
 
     loading,
 
-    hasMore,
-
     // Search
     search,
     setSearch,
@@ -43,13 +41,6 @@ export default function Dashboard() {
     order,
     setOrder,
   } = useGeoData();
-
-  // LOAD NEXT PAGE
-  const loadMore = () => {
-    if (loading || !hasMore) return;
-
-    setPage((prev) => prev + 1);
-  };
 
   if (loading && data.length === 0) {
   return (
