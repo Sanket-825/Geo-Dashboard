@@ -1,6 +1,6 @@
 # Geo Dashboard
 
-> A scalable geospatial project management platform that visualizes 100,000+ infrastructure projects across India through an interactive map and high-performance data grid.
+> A scalable geospatial project management platform that visualizes 100,000+ generated infrastructure project records across India through an interactive map and high-performance data grid.
 
 🔗 **[Live Demo](https://geo-dashboard-sigma.vercel.app/)** &nbsp;·&nbsp; 📡 **[Backend API](https://geo-dashboard-api.onrender.com)** &nbsp;·&nbsp; ⚠️ *Backend hosted on Render free tier — allow ~30s for cold start on first load*
 
@@ -13,7 +13,7 @@
 
 ## What it does
 
-Geo Dashboard lets users search, filter, sort, and paginate through large project datasets while simultaneously visualizing them on a live map. Selecting a table row centers the map on that project's marker — and clicking a marker highlights the corresponding row. The system was built specifically to handle datasets at scale without degrading UI performance.
+Geo Dashboard lets users search, filter, sort, and paginate through large project datasets while simultaneously visualizing them on a live map. Selecting a table row centers the map on that project's marker and clicking a marker highlights the corresponding row — including markers folded into a cluster, which the map automatically zooms into to reveal. The system was built specifically to handle datasets at scale without degrading UI performance.
 
 ---
 
@@ -34,12 +34,13 @@ Geo Dashboard lets users search, filter, sort, and paginate through large projec
 ## Architecture
 
 ```
-React + Vite  →  MUI DataGrid + Leaflet Map  →  Axios
-                                                   │
-                                              Node / Express
-                                                   │
-                                            MongoDB Atlas
-                                          (100,000+ records)
+React + Vite  →  MUI DataGrid + Leaflet Map (clustered)  →  Axios
+                                                                │
+                                                    Node / Express
+                                            (Helmet, rate limiting, CORS allowlist)
+                                                                │
+                                                     MongoDB Atlas
+                                          (100,000+ records, indexed)
 ```
 
 ---
@@ -48,8 +49,8 @@ React + Vite  →  MUI DataGrid + Leaflet Map  →  Axios
 
 | Layer | Technologies |
 |---|---|
-| Frontend | React, Vite, Material UI, MUI DataGrid, React Leaflet, Axios |
-| Backend | Node.js, Express.js, Mongoose |
+| Frontend | React, Vite, Material UI, MUI DataGrid, React Leaflet, react-leaflet-cluster, Axios |
+| Backend | Node.js, Express.js, Mongoose, Helmet, express-rate-limit |
 | Database | MongoDB Atlas |
 | Deployment | Vercel (frontend), Render (backend), GitHub CI/CD |
 
@@ -60,17 +61,23 @@ React + Vite  →  MUI DataGrid + Leaflet Map  →  Axios
 **High-Performance Data Grid**
 - Server-side pagination, sorting, and filtering — no full dataset loaded in browser
 - Debounced search to minimise redundant API calls
-- MUI DataGrid virtualisation keeps rendering fast at any page
+- Renders on MUI DataGrid, which virtualises rows internally (only in-viewport rows are rendered); render buffers tuned via `rowBufferPx`/`columnBufferPx`
 
 **Interactive Map**
 - Leaflet map with project markers plotted across India
-- Bidirectional sync: selecting a table row centres the map, clicking a marker highlights the row
-- Custom marker styling
+- Marker clustering (`react-leaflet-cluster`) groups nearby markers at low zoom for readability and fewer rendered DOM nodes
+- Bidirectional sync: selecting a table row centres the map, clicking a marker highlights the row; if the target marker is folded into a cluster, the map automatically zooms/spiderfies to reveal it (`zoomToShowLayer`)
+- Custom marker styling for default vs. selected state
 
 **Scalable Backend**
-- Dynamic MongoDB queries with compound indexing on sorted/filtered fields
-- Paginated API reduces payload size per request
+- Dynamic MongoDB queries with indexes on `projectName`, `projectNumber`, `createdAt`, and a compound `{status, projectNumber}` index
+- Paginated API reduces payload size per request; `limit` is capped server-side at 100 regardless of client input
 - Structured query parameters for composable filtering
+
+**Security**
+- Helmet sets baseline security response headers (disables `X-Powered-By`, adds `X-Content-Type-Options`, a default CSP, etc.)
+- CORS allowlist restricts cross-origin requests to configured frontend origins only (`FRONTEND_URL`, `FRONTEND_URL_LOCAL`)
+- Rate limiting on `/api/projects` (300 requests / 15 min per IP) returns `429` once exceeded
 
 ---
 
@@ -83,7 +90,7 @@ GET /api/projects
 | Parameter | Type | Description |
 |---|---|---|
 | `page` | Number | Page number |
-| `limit` | Number | Records per page |
+| `limit` | Number | Records per page (capped server-side at 100) |
 | `search` | String | Filter by project name |
 | `status` | String | Filter by status |
 | `sortBy` | String | Field to sort by |
@@ -110,7 +117,7 @@ npm install
 npm run dev
 ```
 
-Create `frontend/.env`:
+Create `frontend/.env` (see `frontend/.env.example`):
 ```
 VITE_API_URL=http://localhost:5000/api/projects
 ```
@@ -123,10 +130,12 @@ npm install
 npm run dev
 ```
 
-Create `backend/.env`:
+Create `backend/.env` (see `backend/.env.example`):
 ```
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
+FRONTEND_URL=https://your-deployed-frontend-url
+FRONTEND_URL_LOCAL=http://localhost:5173
 ```
 
 ### Seed Database
@@ -134,6 +143,7 @@ MONGO_URI=your_mongodb_connection_string
 Generate 100,000 project records with realistic Indian city coordinates:
 
 ```bash
+cd backend
 node scripts/seedData.js
 ```
 
@@ -142,16 +152,32 @@ node scripts/seedData.js
 ## Engineering Decisions
 
 **Why server-side pagination?**
-Loading 100k records client-side would mean ~15–20MB of JSON in the browser on first load. Server-side pagination keeps each response under 50KB regardless of total dataset size.
+Loading 100k records client-side would mean ~15–20MB of JSON in the browser on first load. Server-side pagination keeps each response under 50KB regardless of total dataset size, and the `limit` parameter is capped at 100 server-side so a client can't request an oversized page and defeat this on purpose.
 
-**Why MUI DataGrid virtualisation?**
-Even with paginated data, rendering hundreds of DOM rows simultaneously causes layout thrashing. DataGrid virtualisation only renders rows currently in the viewport.
+**Why rely on MUI DataGrid's built-in virtualisation?**
+Even with paginated data, rendering hundreds of DOM rows simultaneously causes layout thrashing. DataGrid only renders rows currently in the viewport; render buffers were tuned rather than the virtualisation itself being custom-built.
 
 **Why debounced search?**
-Without debouncing, every keystroke fires an API request. A 300ms debounce reduces search-triggered requests by ~80% during normal typing.
+Without debouncing, every keystroke fires an API request. A 300ms debounce reduces search-triggered requests during normal typing.
+
+**Why marker clustering with automatic zoom-to-reveal?**
+With up to 50 markers per page rendered close together on a national map, individual pins overlap and become unreadable. Clustering groups nearby markers into a count bubble; selecting a row that's inside a cluster calls `zoomToShowLayer` to zoom/spiderfy until that specific marker is visible, rather than just re-centring on a spot that may still show a cluster bubble.
+
+**Why a CORS allowlist instead of open CORS?**
+The API was previously open to any origin. Restricting it to explicitly configured frontend URLs (local + deployed) prevents arbitrary third-party sites from calling the API from a browser context.
+
+**Why rate limiting?**
+Protects the API from being hammered by a single client (accidental retry loops or intentional abuse) without requiring authentication for a public read-only dataset.
+
+---
+
+## Known Limitations
+
+- Map clustering operates on the current page of data (up to 50 records) passed down from the table, not the full 100k-record dataset — showing all records on the map at once would require a separate lightweight endpoint returning only coordinates.
+- Search uses an unanchored `$regex` match, which can't use the `projectName` index for substring matches; it's index-assisted for sorting/filtering but not for the search itself.
 
 ---
 
 ## Author
 
-**Sanket Parab** 
+**Sanket Parab**
